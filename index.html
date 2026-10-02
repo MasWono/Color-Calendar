@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#f7f9fc" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Color Calendar" />
+  <link rel="apple-touch-icon" href="icon-180.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>Color Calendar</title>
+</head>
+<body>
+  <main class="app" aria-label="Color Calendar">
+    <header class="topbar">
+      <button id="prevMonth" class="nav-button" aria-label="Previous month">‹</button>
+      <h1 id="monthTitle">October 2026</h1>
+      <button id="nextMonth" class="nav-button" aria-label="Next month">›</button>
+    </header>
+
+    <section class="calendar-wrap">
+      <div class="weekday-row" aria-hidden="true">
+        <span>MON</span><span>TUE</span><span>WED</span>
+        <span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span>
+      </div>
+      <div id="calendarGrid" class="calendar-grid" role="grid" aria-label="Calendar"></div>
+    </section>
+
+    <section id="summary" class="summary" aria-label="Monthly summary">
+      <span><i class="dot green"></i>Green <b id="greenCount">0</b></span>
+      <span><i class="dot red"></i>Red <b id="redCount">0</b></span>
+      <span><i class="dot neutral"></i>Unmarked <b id="unmarkedCount">0</b></span>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
