@@ -7,32 +7,59 @@ const prevMonth = document.getElementById("prevMonth");
 const nextMonth = document.getElementById("nextMonth");
 
 const STORAGE_KEY = "color-calendar-status-v1";
+const LOCK_TIME_KEY = "color-calendar-status-input-time-v1";
+const LOCK_AFTER_MS = 24 * 60 * 60 * 1000;
 
 let viewDate = new Date();
 viewDate.setDate(1);
 
 function loadStatuses() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-  } catch {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    const parsed = saved ? JSON.parse(saved) : {};
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch (error) {
     return {};
   }
 }
 
-function saveStatuses(statuses) {
+function saveStatuses() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(statuses));
 }
 
 let statuses = loadStatuses();
+
+function loadInputTimes() {
+  try {
+    const saved = localStorage.getItem(LOCK_TIME_KEY);
+    const parsed = saved ? JSON.parse(saved) : {};
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function saveInputTimes() {
+  localStorage.setItem(LOCK_TIME_KEY, JSON.stringify(inputTimes));
+}
+
+let inputTimes = loadInputTimes();
+
+function isLocked(key) {
+  const timestamp = Number(inputTimes[key]);
+  return Number.isFinite(timestamp) && (Date.now() - timestamp >= LOCK_AFTER_MS);
+}
 
 function dateKey(year, month, day) {
   return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 function nextStatus(current) {
-  if (!current) return "green";
-  if (current === "green") return "red";
-  return "normal";
+  switch (current) {
+    case "green": return "red";
+    case "red": return "normal";
+    default: return "green";
+  }
 }
 
 function renderCalendar() {
@@ -47,7 +74,6 @@ function renderCalendar() {
   calendarGrid.innerHTML = "";
 
   const firstDay = new Date(year, month, 1);
-  // Convert JS Sunday=0 to Monday=0.
   const offset = (firstDay.getDay() + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
@@ -67,8 +93,11 @@ function renderCalendar() {
     const key = dateKey(year, month, day);
     const status = statuses[key] || "normal";
 
+    button.dataset.dateKey = key;
+
     if (status === "green") button.classList.add("status-green");
     if (status === "red") button.classList.add("status-red");
+    if (status !== "normal" && isLocked(key)) button.classList.add("locked");
 
     if (
       today.getFullYear() === year &&
@@ -84,22 +113,27 @@ function renderCalendar() {
     button.appendChild(number);
 
     button.addEventListener("click", () => {
-      const newStatus = nextStatus(statuses[key] || "normal");
+      if (isLocked(key)) return;
+
+      const current = statuses[key] || "normal";
+      const newStatus = nextStatus(current);
 
       if (newStatus === "normal") {
         delete statuses[key];
+        delete inputTimes[key];
       } else {
+        if (!inputTimes[key]) inputTimes[key] = Date.now();
         statuses[key] = newStatus;
       }
 
-      saveStatuses(statuses);
+      saveStatuses();
+      saveInputTimes();
       renderCalendar();
     });
 
     calendarGrid.appendChild(button);
   }
 
-  // Complete the final week with empty cells.
   const totalCells = offset + daysInMonth;
   const trailing = (7 - (totalCells % 7)) % 7;
   for (let i = 0; i < trailing; i++) {
@@ -118,7 +152,7 @@ function updateSummary(year, month, daysInMonth) {
   for (let day = 1; day <= daysInMonth; day++) {
     const status = statuses[dateKey(year, month, day)] || "normal";
     if (status === "green") green++;
-    if (status === "red") red++;
+    else if (status === "red") red++;
   }
 
   greenCount.textContent = green;
@@ -140,6 +174,6 @@ renderCalendar();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").catch(() => {});
+    navigator.serviceWorker.register("./sw.js?v=6", { updateViaCache: "none" }).catch(() => {});
   });
 }

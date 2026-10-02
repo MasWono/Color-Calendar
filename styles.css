@@ -7,8 +7,8 @@
   --page: #f7f9fc;
   --text: #111318;
   --muted: #7a808b;
-  --green: #20c943;
-  --red: #f2352e;
+  --green: #00D639;
+  --red: #FF0000;
 }
 
 html, body {
@@ -96,12 +96,6 @@ body {
   min-height: min(60svh, 500px);
 }
 
-/*
-  IMPORTANT:
-  The calendar cells remain exactly the light rounded cards
-  used in the current design. The new 3D effect is applied
-  to the DATE NUMBER only.
-*/
 .day {
   position: relative;
   min-width: 0;
@@ -116,6 +110,9 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  padding: 0;
 }
 
 .day.empty {
@@ -131,35 +128,38 @@ body {
   line-height: 1;
   color: #111318;
   text-align: center;
-
-  /* Light 3D treatment on the number itself */
   text-shadow:
     0 1px 0 rgba(255,255,255,.95),
     0 2px 0 rgba(0,0,0,.12),
     0 3px 4px rgba(0,0,0,.10);
-
   transition: transform .14s ease, text-shadow .14s ease;
 }
 
-.day.status-green .day-number {
-  color: var(--green);
-  text-shadow:
-    0 1px 0 rgba(255,255,255,.95),
-    0 1px 0 #15952b,
-    0 2px 0 #0f8525,
-    0 4px 5px rgba(0,0,0,.15);
+.day.status-green {
+  background: linear-gradient(145deg, #5AF06F 0%, #00D639 55%, #00A82E 100%);
+  box-shadow:
+    0 5px 12px rgba(0,0,0,.10),
+    inset 0 2px 1px rgba(255,255,255,.60),
+    inset 0 -3px 5px rgba(0,100,20,.16);
 }
 
+.day.status-red {
+  background: linear-gradient(145deg, #FF4D4D 0%, #FF0000 55%, #D90000 100%);
+  box-shadow:
+    0 5px 12px rgba(0,0,0,.10),
+    inset 0 2px 1px rgba(255,255,255,.60),
+    inset 0 -3px 5px rgba(120,0,0,.16);
+}
+
+.day.status-green .day-number,
 .day.status-red .day-number {
-  color: var(--red);
+  color: #111318;
   text-shadow:
     0 1px 0 rgba(255,255,255,.95),
-    0 1px 0 #b91f1a,
-    0 2px 0 #9f1a16,
-    0 4px 5px rgba(0,0,0,.15);
+    0 2px 0 rgba(0,0,0,.16),
+    0 3px 4px rgba(0,0,0,.14);
 }
 
-/* Keep the existing selected-day ring style. */
 .day.today .day-number::after {
   content: "";
   position: absolute;
@@ -216,4 +216,9 @@ body {
     font-size: 11px;
     gap: 6px 12px;
   }
+}
+
+/* A locked colored date keeps its appearance but cannot be edited. */
+.day.locked {
+  cursor: default;
 }
