@@ -13,13 +13,15 @@ viewDate.setDate(1);
 
 function loadStatuses() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-  } catch {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    const parsed = saved ? JSON.parse(saved) : {};
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch (error) {
     return {};
   }
 }
 
-function saveStatuses(statuses) {
+function saveStatuses() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(statuses));
 }
 
@@ -30,9 +32,11 @@ function dateKey(year, month, day) {
 }
 
 function nextStatus(current) {
-  if (!current) return "green";
-  if (current === "green") return "red";
-  return "normal";
+  switch (current) {
+    case "green": return "red";
+    case "red": return "normal";
+    default: return "green";
+  }
 }
 
 function renderCalendar() {
@@ -47,7 +51,6 @@ function renderCalendar() {
   calendarGrid.innerHTML = "";
 
   const firstDay = new Date(year, month, 1);
-  // Convert JS Sunday=0 to Monday=0.
   const offset = (firstDay.getDay() + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
@@ -67,6 +70,8 @@ function renderCalendar() {
     const key = dateKey(year, month, day);
     const status = statuses[key] || "normal";
 
+    button.dataset.dateKey = key;
+
     if (status === "green") button.classList.add("status-green");
     if (status === "red") button.classList.add("status-red");
 
@@ -83,23 +88,9 @@ function renderCalendar() {
     number.textContent = day;
     button.appendChild(number);
 
-    button.addEventListener("click", () => {
-      const newStatus = nextStatus(statuses[key] || "normal");
-
-      if (newStatus === "normal") {
-        delete statuses[key];
-      } else {
-        statuses[key] = newStatus;
-      }
-
-      saveStatuses(statuses);
-      renderCalendar();
-    });
-
     calendarGrid.appendChild(button);
   }
 
-  // Complete the final week with empty cells.
   const totalCells = offset + daysInMonth;
   const trailing = (7 - (totalCells % 7)) % 7;
   for (let i = 0; i < trailing; i++) {
@@ -111,6 +102,27 @@ function renderCalendar() {
   updateSummary(year, month, daysInMonth);
 }
 
+// One delegated click handler keeps tapping reliable even after every re-render.
+calendarGrid.addEventListener("click", (event) => {
+  const button = event.target.closest("button.day");
+  if (!button || button.classList.contains("empty")) return;
+
+  const key = button.dataset.dateKey;
+  if (!key) return;
+
+  const current = statuses[key] || "normal";
+  const newStatus = nextStatus(current);
+
+  if (newStatus === "normal") {
+    delete statuses[key];
+  } else {
+    statuses[key] = newStatus;
+  }
+
+  saveStatuses();
+  renderCalendar();
+});
+
 function updateSummary(year, month, daysInMonth) {
   let green = 0;
   let red = 0;
@@ -118,7 +130,7 @@ function updateSummary(year, month, daysInMonth) {
   for (let day = 1; day <= daysInMonth; day++) {
     const status = statuses[dateKey(year, month, day)] || "normal";
     if (status === "green") green++;
-    if (status === "red") red++;
+    else if (status === "red") red++;
   }
 
   greenCount.textContent = green;
@@ -140,6 +152,6 @@ renderCalendar();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").catch(() => {});
+    navigator.serviceWorker.register("./sw.js?v=4", { updateViaCache: "none" }).catch(() => {});
   });
 }

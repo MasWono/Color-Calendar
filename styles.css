@@ -96,12 +96,6 @@ body {
   min-height: min(60svh, 500px);
 }
 
-/*
-  IMPORTANT:
-  The calendar cells remain exactly the light rounded cards
-  used in the current design. The new 3D effect is applied
-  to the DATE NUMBER only.
-*/
 .day {
   position: relative;
   min-width: 0;
@@ -116,6 +110,9 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  padding: 0;
 }
 
 .day.empty {
@@ -131,14 +128,11 @@ body {
   line-height: 1;
   color: #111318;
   text-align: center;
-
-  /* Light 3D treatment on the number itself */
   text-shadow:
     0 1px 0 rgba(255,255,255,.95),
     0 2px 0 rgba(0,0,0,.12),
     0 3px 4px rgba(0,0,0,.10);
-
-  transition: transform .14s ease, text-shadow .14s ease;
+  transition: transform .14s ease, text-shadow .14s ease, color .14s ease;
 }
 
 .day.status-green .day-number {
@@ -159,7 +153,6 @@ body {
     0 4px 5px rgba(0,0,0,.15);
 }
 
-/* Keep the existing selected-day ring style. */
 .day.today .day-number::after {
   content: "";
   position: absolute;
